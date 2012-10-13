@@ -1,4 +1,5 @@
 *.py[co]
+PYSMELLTAGS*
 
 # Packages
 *.egg
