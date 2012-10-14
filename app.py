@@ -8,7 +8,8 @@ def index():
 
 @app.route('/data', methods=['GET'])
 def data():
-    return 'data'
+    from flask import Response
+    return Response('data')
 
 #def websocket(wsgi_app):
     #def _wsig_app(environ, start_response):
@@ -27,13 +28,13 @@ def data():
     #return _wsig_app
 
 def main():
-    from gevent import pywsgi
-    from geventwebsocket.handler import WebSocketHandler
-    server = pywsgi.WSGIServer(('', 5000), app,
-            handler_class=WebSocketHandler)
-    server.serve_forever()
+    #from gevent import pywsgi
+    #from geventwebsocket.handler import WebSocketHandler
+    #server = pywsgi.WSGIServer(('', 5000), app,
+            #handler_class=WebSocketHandler)
+    #server.serve_forever()
     #app.wsgi_app = websocket(app.wsgi_app)
-    #app.run('localhost', debug=True)
+    app.run('localhost', debug=True)
 
 if __name__ == '__main__':
     main()

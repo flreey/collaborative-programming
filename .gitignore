@@ -1,5 +1,7 @@
 *.py[co]
 PYSMELLTAGS*
+*.swo
+*.swp
 
 # Packages
 *.egg

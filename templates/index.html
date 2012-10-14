@@ -4,38 +4,19 @@
         <title>Editor</title>
         <link rel="stylesheet" href="/static/css/editor.css" />
         <!-- bootstrap -->
-        <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <script src="/static/lib/jquery-1.7.2.min.js"></script>
-        <script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+        <!--<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">-->
+        <!--<script src="/static/lib/jquery-1.7.2.min.js"></script>-->
+        <!--<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>-->
     </head> 
     <body>
         <div id="editor"></div>
     </body>
     <script src="/static/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/static/lib/ace/keybinding-vim.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="/static/js/socket.io.min.js"> </script>
+    <script src="/static/sea.js" data-main="/static/seajs_config"></script>
     <script>
-        var editor = ace.edit("editor");
-        editor.setShowPrintMargin(true);
-        <!--editor.setReadOnly(true);-->
-        <!--editor.resize();-->
-        editor.setKeyboardHandler(ace.require('ace/keyboard/vim').handler);
-        editor.setTheme("ace/theme/monokai");
-        <!--editor.setHighlightActiveLine(true);-->
-        var session = editor.getSession();
-        session.setMode("ace/mode/javascript");
-        session.setUseWrapMode(true);
-
-        var tips = "Online Vim";
-        editor.insert(tips);
+        seajs.use('editor', function(editor) {
+            editor.init(ace, io);
+        })
     </script>
-
-    <script type="text/javascript">
-        var ws = new WebSocket('ws://localhost:5000/data');
-        ws.onopen = function() {}
-        ws.onclose = function() {}
-        ws.onerror = function() {}
-        ws.send('hello');
-        ws.onmessage = function(e) {console.log(e.data)}
-    </script>
-
 </html> 
