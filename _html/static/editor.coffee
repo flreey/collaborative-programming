@@ -14,39 +14,46 @@ define((require, exports, module) ->
         #$ = require('$')
         io = io.connect("/project")
         io.on('connect', () =>
-            e = @editor
-            s = e.getSession()
-            sl = e.selection
-            io.emit('join', project)
+            editor = @editor
+            editSession = editor.getSession()
+            selection = editor.selection
+            events_stack = []
 
-            emit_msg = false
-            $(document).keypress((event) ->
-                emit_msg = true
-            )
-
-            e.on('change', (o)->
-                console.log emit_msg
-                if emit_msg
-                    console.log o
-                    io.emit('change', {action: o.data.action, text: o.data.text})
-                    emit_msg = false
-            )
-
-            e.on('changeSelection', (o)->
-                arow = sl.anchor.row
-                acol = sl.anchor.column
-                lrow = sl.lead.row
-                lcol = sl.lead.column
-
-                if arow != lrow || acol != lcol
-                    io.emit('change_selection',
-                        {arow: arow, acol: acol,
-                        lrow: lrow, lcol: lcol}
+            io.emit('join', project, (user)->
+                console.log user
+                if user == 'writer'
+                    editSession.on('change', (o)->
+                        console.log o
+                        #io.emit('change', o)
+                        events_stack.push(o)
                     )
-            )
 
-            io.on('insertText', (data) ->
-                e.insert(data)
+                    editSession.selection.on('changeSelection', (o)->
+                        events_stack.push(event)
+                    )
+
+                    editSession.selection.on('changeCursor', ()->
+                        o = editor.getCursorPosition()
+                        #event =
+                            #data:
+                                #action: 'changeCursor'
+                                #pos: o
+                        events_stack.push(o)
+                    )
+
+                    emit = ()->
+                        if events_stack.length > 0
+                            io.emit('change', events_stack)
+                            events_stack = []
+
+                    setInterval(emit, 100)
+
+                else if user == 'reader'
+                    io.on('insertText', (data) ->
+                        #e.on('change', ()->)
+                        editor.insert(data)
+                        #e.on('change', message)
+                    )
             )
         )
 )

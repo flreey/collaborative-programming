@@ -1,5 +1,5 @@
 import pdb
-import collections
+from collections import defaultdict
 
 from flask import Flask, render_template, request, Response, session
 from socketio import socketio_manage
@@ -15,13 +15,22 @@ def index():
     return render_template('index.html', project='test')
 
 class Project(BaseNamespace, RoomsMixin):
-    projects = collections.defaultdict(set)
+    projects = defaultdict(lambda:defaultdict(set))
 
     def on_join(self, project):
         self.room = project
         self.join(self.room)
-        #self.sid = self.socket.sessid
-        self.projects[self.room].add(self.sid)
+
+        return self.distribute_authority(project, self.sid), True
+
+    def distribute_authority(self, project, sid):
+        authority = 'reader'
+
+        if 'writer' not in self.projects[project].values():
+            authority = 'writer'
+        self.projects[project][sid] = authority
+
+        return authority
 
     def recv_connect(self):
         self.sid = self.socket.sessid
@@ -30,15 +39,25 @@ class Project(BaseNamespace, RoomsMixin):
     def recv_disconnect(self):
         try:
             self.disconnect(True)
-            self.projects[self.room].remove(self.sid)
+            self.projects[self.room].pop(self.sid)
         except KeyError:
             pass
 
     def on_change(self, data):
-        action, text = data.values()
-        print action, text
-        self.emit_to_room(self.room, action, text)
-        return list()
+        for d in data:
+            try:
+                print d
+                action = d['data']['action']
+                args = getattr(self, action)(d)
+                self.emit_to_room(self.room, action, args)
+            except:
+                pass
+
+    def changeCursor(self, d):
+        print 'changeCursor'
+
+    def insertText(self, d):
+        return d['data']['text']
 
     def on_change_selection(self, data):
         return (data, '')

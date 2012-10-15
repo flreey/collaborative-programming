@@ -3,6 +3,7 @@ PYSMELLTAGS*
 *.swo
 *.swp
 tags
+pysmell_exc.txt
 
 # Packages
 *.egg
