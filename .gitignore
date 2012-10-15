@@ -2,6 +2,7 @@
 PYSMELLTAGS*
 *.swo
 *.swp
+tags
 
 # Packages
 *.egg
