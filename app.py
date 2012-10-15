@@ -1,40 +1,59 @@
-from flask import Flask, render_template
+import pdb
+import collections
+
+from flask import Flask, render_template, request, Response, session
+from socketio import socketio_manage
+from socketio.namespace import BaseNamespace
+from socketio.mixins import RoomsMixin
+from gevent import monkey; monkey.patch_all()
+from socketio.server import SocketIOServer
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    return render_template('index.html', project='test')
 
-@app.route('/data', methods=['GET'])
-def data():
-    from flask import Response
-    return Response('data')
+class Project(BaseNamespace, RoomsMixin):
+    projects = collections.defaultdict(set)
 
-#def websocket(wsgi_app):
-    #def _wsig_app(environ, start_response):
-        ##with self.request_context(environ):
-        #upgrade = environ.get('HTTP_UPGRADE', '').lower()
-        #if upgrade == 'websocket':
-            #connection = environ.get('HTTP_CONNECTION', '').lower()
+    def on_join(self, project):
+        self.room = project
+        self.join(self.room)
+        #self.sid = self.socket.sessid
+        self.projects[self.room].add(self.sid)
 
-            #if connection == 'Upgrade':
-                #ws_version = environ.get('HTTP_SEC_WEBSOCKET_VERSION', '').lower()
-                #ws_key = environ.get('HTTP_SEC_WEBSOCKET_KEY', '').lower()
-                #return wsgi_app(environ, start_response)
-        #else:
-            #return wsgi_app(environ, start_response)
+    def recv_connect(self):
+        self.sid = self.socket.sessid
+        #self.emit('sid', self.sid)
 
-    #return _wsig_app
+    def recv_disconnect(self):
+        try:
+            self.disconnect(True)
+            self.projects[self.room].remove(self.sid)
+        except KeyError:
+            pass
+
+    def on_change(self, data):
+        action, text = data.values()
+        print action, text
+        self.emit_to_room(self.room, action, text)
+        return list()
+
+    def on_change_selection(self, data):
+        return (data, '')
+
+@app.route('/socket.io/<path:remaining>', methods=['GET'])
+def socketio(remaining):
+    socketio_manage(request.environ, {'/project': Project},
+            request)
+    return Response()
 
 def main():
-    #from gevent import pywsgi
-    #from geventwebsocket.handler import WebSocketHandler
-    #server = pywsgi.WSGIServer(('', 5000), app,
-            #handler_class=WebSocketHandler)
-    #server.serve_forever()
-    #app.wsgi_app = websocket(app.wsgi_app)
-    app.run('localhost', debug=True)
+    server = SocketIOServer(('', 5000), app, resource="socket.io")
+    server.serve_forever()
+
+    #app.run('localhost', debug=True)
 
 if __name__ == '__main__':
     main()
