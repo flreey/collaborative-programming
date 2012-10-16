@@ -14,8 +14,52 @@ app = Flask(__name__)
 def index():
     return render_template('index.html', project='test')
 
-class Project(BaseNamespace, RoomsMixin):
+class Editor(object):
+    def __init__(self):
+        self.skip_cursor = False
+
+    def changeCursor(self, data):
+        if self.skip_cursor:
+            self.skip_cursor = False
+            return
+        data.pop('action')
+        return data
+
+    def insertText(self, data):
+        text = data['text']
+        if self.skip_cursor:
+            self.skip_cursor = False
+        if text == u'\n' or text == u'\r\n':
+            self.skip_cursor = True
+        return data['text']
+
+    def changeSelection(self, data):
+        data.pop('action')
+        return data
+
+    def insertLines(self, data):
+        return data['lines']
+
+    def removeText(self, data):
+        return data['range']
+
+    def removeLines(self, data):
+        pass
+
+
+class Project(BaseNamespace, RoomsMixin, Editor):
     projects = defaultdict(lambda:defaultdict(set))
+
+    def recv_connect(self):
+        self.sid = self.socket.sessid
+        #self.emit('sid', self.sid)
+
+    def recv_disconnect(self):
+        try:
+            self.disconnect(True)
+            self.projects[self.room].pop(self.sid)
+        except KeyError:
+            pass
 
     def on_join(self, project):
         self.room = project
@@ -32,35 +76,13 @@ class Project(BaseNamespace, RoomsMixin):
 
         return authority
 
-    def recv_connect(self):
-        self.sid = self.socket.sessid
-        #self.emit('sid', self.sid)
-
-    def recv_disconnect(self):
-        try:
-            self.disconnect(True)
-            self.projects[self.room].pop(self.sid)
-        except KeyError:
-            pass
-
     def on_change(self, data):
         for d in data:
-            try:
-                print d
-                action = d['data']['action']
-                args = getattr(self, action)(d)
+            print d
+            action = d['action']
+            args = getattr(self, action)(d)
+            if args:
                 self.emit_to_room(self.room, action, args)
-            except:
-                pass
-
-    def changeCursor(self, d):
-        print 'changeCursor'
-
-    def insertText(self, d):
-        return d['data']['text']
-
-    def on_change_selection(self, data):
-        return (data, '')
 
 @app.route('/socket.io/<path:remaining>', methods=['GET'])
 def socketio(remaining):

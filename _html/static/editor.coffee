@@ -2,6 +2,8 @@ define((require, exports, module) ->
     init: (ace, io, project) ->
         @ace = ace
         @editor = @ace.edit('editor')
+        #require('vim')
+        #@editor.setKeyboardHandler(ace.require('ace/keyboard/vim').handler)
         @editor.setShowPrintMargin(true)
         @editor.setTheme("ace/theme/monokai")
         session = @editor.getSession()
@@ -23,21 +25,18 @@ define((require, exports, module) ->
                 console.log user
                 if user == 'writer'
                     editSession.on('change', (o)->
-                        console.log o
-                        #io.emit('change', o)
-                        events_stack.push(o)
+                        events_stack.push(o.data)
                     )
 
                     editSession.selection.on('changeSelection', (o)->
-                        events_stack.push(event)
+                        range = editSession.selection.getRange()
+                        range.action = 'changeSelection'
+                        events_stack.push(range)
                     )
 
                     editSession.selection.on('changeCursor', ()->
                         o = editor.getCursorPosition()
-                        #event =
-                            #data:
-                                #action: 'changeCursor'
-                                #pos: o
+                        o.action = 'changeCursor'
                         events_stack.push(o)
                     )
 
@@ -50,9 +49,25 @@ define((require, exports, module) ->
 
                 else if user == 'reader'
                     io.on('insertText', (data) ->
-                        #e.on('change', ()->)
+                        console.log 'insertText'
+                        console.log data.length
                         editor.insert(data)
-                        #e.on('change', message)
+                        if data == "\n" or data == "\r\n"
+                            editor.removeToLineStart()
+                    )
+
+                    io.on('changeCursor', (data)->
+                        console.log 'changeCursor'
+                        console.log data
+                        editor.moveCursorTo(data.row, data.column)
+                    )
+
+                    io.on('changeSelection', (data)->
+                        console.log 'changeSelection'
+                        console.log data
+                        window.e = editor
+                        selection.setRange(data)
+                        #editor.fromPoints(data.start, data.end)
                     )
             )
         )
