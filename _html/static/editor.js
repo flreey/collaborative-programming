@@ -19,6 +19,7 @@ define(function(require, exports, module) {
       return io.on('connect', function() {
         var editSession, editor, events_stack, selection;
         editor = _this.editor;
+        window.t = editor;
         editSession = editor.getSession();
         selection = editor.selection;
         events_stack = [];
@@ -49,6 +50,7 @@ define(function(require, exports, module) {
             };
             return setInterval(emit, 100);
           } else if (user === 'reader') {
+            editSession.setMode("");
             io.on('insertText', function(data) {
               console.log('insertText');
               console.log(data.length);

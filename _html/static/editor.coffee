@@ -17,6 +17,7 @@ define((require, exports, module) ->
         io = io.connect("/project")
         io.on('connect', () =>
             editor = @editor
+            window.t = editor
             editSession = editor.getSession()
             selection = editor.selection
             events_stack = []
@@ -24,6 +25,7 @@ define((require, exports, module) ->
             io.emit('join', project, (user)->
                 console.log user
                 if user == 'writer'
+
                     editSession.on('change', (o)->
                         events_stack.push(o.data)
                     )
@@ -48,6 +50,8 @@ define((require, exports, module) ->
                     setInterval(emit, 100)
 
                 else if user == 'reader'
+                    editSession.setMode("")
+                   #editSession._eventRegistry.change = ''
                     io.on('insertText', (data) ->
                         console.log 'insertText'
                         console.log data.length

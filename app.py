@@ -21,7 +21,7 @@ class Editor(object):
     def changeCursor(self, data):
         if self.skip_cursor:
             self.skip_cursor = False
-            return
+            #return
         data.pop('action')
         return data
 
@@ -91,6 +91,7 @@ def socketio(remaining):
     return Response()
 
 def main():
+    print 'server run: http://localhost:5000'
     server = SocketIOServer(('', 5000), app, resource="socket.io")
     server.serve_forever()
 
