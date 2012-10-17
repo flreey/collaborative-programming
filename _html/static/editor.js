@@ -52,22 +52,12 @@ define(function(require, exports, module) {
           } else if (user === 'reader') {
             editSession.setMode("");
             io.on('insertText', function(data) {
-              console.log('insertText');
-              console.log(data.length);
-              editor.insert(data);
-              if (data === "\n" || data === "\r\n") {
-                return editor.removeToLineStart();
-              }
+              return editor.insert(data);
             });
             io.on('changeCursor', function(data) {
-              console.log('changeCursor');
-              console.log(data);
               return editor.moveCursorTo(data.row, data.column);
             });
             return io.on('changeSelection', function(data) {
-              console.log('changeSelection');
-              console.log(data);
-              window.e = editor;
               return selection.setRange(data);
             });
           }

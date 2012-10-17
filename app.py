@@ -31,7 +31,8 @@ class Editor(object):
             self.skip_cursor = False
         if text == u'\n' or text == u'\r\n':
             self.skip_cursor = True
-        return data['text']
+        data.pop('action')
+        return data
 
     def changeSelection(self, data):
         data.pop('action')

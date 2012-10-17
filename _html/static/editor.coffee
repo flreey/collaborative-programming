@@ -53,23 +53,16 @@ define((require, exports, module) ->
                     editSession.setMode("")
                    #editSession._eventRegistry.change = ''
                     io.on('insertText', (data) ->
-                        console.log 'insertText'
-                        console.log data.length
                         editor.insert(data)
-                        if data == "\n" or data == "\r\n"
-                            editor.removeToLineStart()
+                        #if data == "\n" or data == "\r\n"
+                            #editor.removeToLineStart()
                     )
 
                     io.on('changeCursor', (data)->
-                        console.log 'changeCursor'
-                        console.log data
                         editor.moveCursorTo(data.row, data.column)
                     )
 
                     io.on('changeSelection', (data)->
-                        console.log 'changeSelection'
-                        console.log data
-                        window.e = editor
                         selection.setRange(data)
                         #editor.fromPoints(data.start, data.end)
                     )
