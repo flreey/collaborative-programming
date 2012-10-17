@@ -1,13 +1,18 @@
 define((require, exports, module) ->
-    init: (ace, io, project) ->
-        @ace = ace
-        @editor = @ace.edit('editor')
+    ace = ''
+    editor = ''
+    Range = ''
+
+    init: (_ace, io, project) ->
+        ace = _ace
+        editor = ace.edit('editor')
+        Range = ace.require('ace/range').Range
         #require('vim')
         #@editor.setKeyboardHandler(ace.require('ace/keyboard/vim').handler)
-        @editor.setShowPrintMargin(true)
-        @editor.setTheme("ace/theme/monokai")
-        session = @editor.getSession()
-        session.setMode("ace/mode/javascript")
+        editor.setShowPrintMargin(true)
+        editor.setTheme("ace/theme/monokai")
+        session = editor.getSession()
+        session.setMode("")
         session.setUseWrapMode(true)
 
         @asyn_server(io, project)
@@ -16,7 +21,7 @@ define((require, exports, module) ->
         #$ = require('$')
         io = io.connect("/project")
         io.on('connect', () =>
-            editor = @editor
+            editor = editor
             window.t = editor
             editSession = editor.getSession()
             selection = editor.selection
@@ -50,12 +55,16 @@ define((require, exports, module) ->
                     setInterval(emit, 100)
 
                 else if user == 'reader'
-                    editSession.setMode("")
+                    #editSession.setMode("")
                    #editSession._eventRegistry.change = ''
                     io.on('insertText', (data) ->
-                        editor.insert(data)
-                        #if data == "\n" or data == "\r\n"
-                            #editor.removeToLineStart()
+                        start = data.range.start
+                        #editSession.insert(start, data.text)
+                        #editor.moveCursorTo(start.row, start.column)
+                        #r = data.range
+                        #range = new Range(r.start.row, r.start.column, r.end.row, r.end.column)
+                        #editSession.replace(range, data.text)
+                        editor.insert(data.text)
                     )
 
                     io.on('changeCursor', (data)->
@@ -66,6 +75,20 @@ define((require, exports, module) ->
                         selection.setRange(data)
                         #editor.fromPoints(data.start, data.end)
                     )
+
+                    io.on('removeText', (data)->
+                        removeText(data)
+                    )
+
+                    io.on('removeLines', (data)->
+                        removeText(data)
+                    )
+
+                    removeText = (data)->
+                        r = data.range
+                        range = new Range(r.start.row, r.start.column, r.end.row, r.end.column)
+                        editSession.remove(range)
+
             )
         )
 )
