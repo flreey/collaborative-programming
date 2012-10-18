@@ -30,3 +30,4 @@ class Editor(object):
 
     def removeLines(self, data):
         return data
+
