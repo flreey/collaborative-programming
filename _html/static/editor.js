@@ -14,7 +14,7 @@ define(function(require, exports, module) {
       editor.setShowPrintMargin(true);
       editor.setTheme("ace/theme/monokai");
       session = editor.getSession();
-      session.setMode("");
+      session.setMode("ace/mode/javascript");
       session.setUseWrapMode(true);
       return this.asyn_server(io, project);
     },
